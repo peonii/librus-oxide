@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.70"
+chrono = "0.4.24"
 cookie = "0.17.0"
 regex = "1.7.3"
 reqwest = { version = "0.11.16", features = ["json", "cookies"] }

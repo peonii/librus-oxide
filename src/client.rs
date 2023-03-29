@@ -1,13 +1,9 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use cookie::{Cookie, CookieJar};
 use reqwest::{
-    cookie::Jar,
-    header::{HeaderMap, SET_COOKIE},
-    Client, Response,
+    header::HeaderMap, Client
 };
-use reqwest_cookie_store::CookieStoreMutex;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::api_types::APISynergiaAccountsWrapper;
@@ -17,7 +13,6 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 pub struct Librus {
     request: Client,
     bearer: String,
-    cookie_jar: Arc<CookieStoreMutex>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -38,8 +33,7 @@ impl Default for Librus {
                 .cookie_provider(Arc::clone(&cookie_store))
                 .build()
                 .unwrap(),
-            bearer: String::new(),
-            cookie_jar: cookie_store,
+            bearer: String::new()
         }
     }
 }
@@ -57,9 +51,9 @@ impl Librus {
 
         let csrf = re
             .captures(&response_text)
-            .ok_or(anyhow::anyhow!("Invalid response from Librus API"))?
+            .ok_or(anyhow::anyhow!("Couldn't fetch the CSRF token!"))?
             .get(1)
-            .ok_or(anyhow::anyhow!("Invalid response from Librus API"))?
+            .ok_or(anyhow::anyhow!("Couldn't fetch the CSRF token!"))?
             .as_str();
 
         Ok(csrf.to_string())
@@ -84,7 +78,7 @@ impl Librus {
         // Check for correct response
         if response_cookies.status() != 200 {
             return Err(anyhow::anyhow!(
-                "Invalid response from Librus API\nInvalid email or password\n{:?}",
+                "Got an invalid response while fetching cookies!\nInvalid email or password\n{:?}",
                 response_cookies
             ));
         }
@@ -96,17 +90,23 @@ impl Librus {
             .await?;
 
         // Find bearer token
-        let acconuts = response.json::<APISynergiaAccountsWrapper>().await?;
+        let accounts = match response.json::<APISynergiaAccountsWrapper>().await {
+            Ok(accounts) => accounts,
+            Err(_) => {
+                return Err(anyhow::anyhow!(
+                    "Got an invalid response while fetching the access token!\nInvalid email or password"
+                ))
+            }
+        };
 
-        if acconuts.accounts.is_empty() {
+
+        if accounts.accounts.is_empty() {
             return Err(anyhow::anyhow!(
-                "Invalid response from Librus API\nInvalid email or password"
+                "Got an invalid response while fetching the access token!\nInvalid email or password"
             ));
         }
 
-        let bearer = acconuts.accounts[0].accessToken.clone();
-
-        self.bearer = bearer;
+        self.bearer = accounts.accounts[0].access_token.clone();
 
         Ok(())
     }

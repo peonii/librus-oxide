@@ -8,6 +8,7 @@ pub struct APISynergiaAccountsWrapper {
 #[derive(Serialize, Deserialize)]
 pub struct APISynergiaAccount {
     pub id: i32,
-    pub accessToken: String,
+    #[serde(alias = "accessToken")]
+    pub access_token: String,
     pub login: String,
 }
