@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use reqwest::{
-    header::HeaderMap, Client
-};
+use reqwest::{header::HeaderMap, Client};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::api_types::APISynergiaAccountsWrapper;
@@ -33,7 +31,7 @@ impl Default for Librus {
                 .cookie_provider(Arc::clone(&cookie_store))
                 .build()
                 .unwrap(),
-            bearer: String::new()
+            bearer: String::new(),
         }
     }
 }
@@ -98,7 +96,6 @@ impl Librus {
                 ))
             }
         };
-
 
         if accounts.accounts.is_empty() {
             return Err(anyhow::anyhow!(

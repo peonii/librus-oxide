@@ -1,15 +1,15 @@
 use crate::client::Librus;
-use chrono::prelude::*;
 use anyhow::Result;
+use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashMap;
 use crate::common::{NumberIDResource, StringIDResource};
+use std::collections::HashMap;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct TimetableResponse {
     #[serde(alias = "Timetable")]
-    pub timetable: HashMap<String, TimetableDay>
+    pub timetable: HashMap<String, TimetableDay>,
 }
 
 pub type TimetableDay = Vec<Vec<TimetableEvent>>;
@@ -120,7 +120,7 @@ pub struct TimetableEvent {
 }
 
 impl Librus {
-    pub async fn fetch_week(&self, day: DateTime<Local>) -> Result<TimetableResponse> {
+    pub async fn timetable_fetch_week(&self, day: DateTime<Local>) -> Result<TimetableResponse> {
         let difference_to_monday = day.weekday().number_from_monday() as i64 - 1;
         let monday = day - chrono::Duration::days(difference_to_monday);
 
@@ -133,8 +133,8 @@ impl Librus {
         Ok(response)
     }
 
-    pub async fn fetch_day(&self, day: DateTime<Local>) -> Result<TimetableDay> {
-        let response = self.fetch_week(day).await?;
+    pub async fn timetable_fetch_day(&self, day: DateTime<Local>) -> Result<TimetableDay> {
+        let response = self.timetable_fetch_week(day).await?;
 
         let day = day.format("%Y-%m-%d").to_string();
 
