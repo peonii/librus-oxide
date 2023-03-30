@@ -58,6 +58,11 @@ impl Librus {
     }
 
     pub async fn login(&mut self, credentials: &LibrusCredentials) -> Result<()> {
+        // Validate credentials before processing to not waste time
+        if credentials.email.is_empty() || credentials.password.is_empty() {
+            return Err(anyhow::anyhow!("Invalid credentials!"));
+        }
+
         let mut headers = HeaderMap::new();
         let csrf = self.get_csrf().await?;
 

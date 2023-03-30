@@ -42,6 +42,7 @@ pub struct Calendar {
 
 impl Librus {
     pub async fn calendar_from_date(&self, date: DateTime<Local>) -> Result<Calendar> {
+        println!("Fetching initial calendar data...");
         let init_response = self
             .request::<CalendarInitResponse>("https://api.librus.pl/3.0/Calendars")
             .await?;

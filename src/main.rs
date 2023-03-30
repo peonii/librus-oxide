@@ -20,23 +20,26 @@ async fn main() -> anyhow::Result<()> {
         .map(|hour| hour[0].subject.name.clone())
         .for_each(|_name| { /*println!("{}", name) */ });
 
-    let calendar = librus.calendar_from_date(Local::now()).await?;
+    //let calendar = librus.calendar_from_date(Local::now()).await?;
     let next_month_date = Local::now() + chrono::Duration::days(30);
     let calendar_next_month = librus.calendar_from_date(next_month_date).await?;
 
-    let homeworks = librus.homeworks_from_calendar(calendar).await?;
-    let homeworks_next_month = librus.homeworks_from_calendar(calendar_next_month).await?;
+    //let homeworks = librus.homeworks_from_calendar(calendar).await?;
+    let mut homeworks_next_month = librus.homeworks_from_calendar(calendar_next_month).await?;
 
-    let mut both_homeworks = homeworks
-        .iter()
-        .chain(homeworks_next_month.iter())
-        .collect::<Vec<_>>();
+    // let mut both_homeworks = homeworks
+    //     .iter()
+    //     .chain(homeworks_next_month.iter())
+    //     .collect::<Vec<_>>();
 
-    both_homeworks.sort_by(|a, b| a.date.cmp(&b.date));
+    homeworks_next_month.sort_by(|a, b| a.date.cmp(&b.date));
 
-    both_homeworks
+    let subjects = librus.get_subjects_by_numberids(homeworks_next_month.iter().map(|h| h.subject.clone()).collect()).await?;
+
+    homeworks_next_month
         .iter()
         .for_each(|homework| println!("{} - {}", homework.date, homework.content));
+
 
     Ok(())
 }
